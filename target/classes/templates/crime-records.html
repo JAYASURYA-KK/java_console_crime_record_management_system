@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crime Records Management</title>
+    <link rel="icon" type="image/x-icon" href="/favico.ico" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid transparent;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        .search-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-section h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-form input, .search-form select {
+            padding: 12px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            outline: none;
+        }
+
+        .search-form input {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-form input:focus, .search-form select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-form select {
+            min-width: 150px;
+            cursor: pointer;
+        }
+
+        .search-form button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-form button[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .search-form button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-form button[type="button"] {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .search-form button[type="button"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .stats {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .stats strong {
+            color: #e53e3e;
+            font-size: 1.5rem;
+        }
+
+        .crime-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .crime-card {
+            border: none;
+            border-radius: 15px;
+            padding: 25px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .crime-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .crime-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .crime-card[style*="grid-column"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .crime-card[style*="grid-column"]::before {
+            display: none;
+        }
+
+        .crime-id {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .crime-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .crime-details {
+            margin-bottom: 10px;
+            color: #4a5568;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .crime-details strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .crime-type {
+            display: inline-block;
+            background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(229, 62, 62, 0.3);
+        }
+
+        .crime-photo {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 15px 0;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .crime-photo:hover {
+            transform: scale(1.02);
+        }
+
+        .crime-date {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            margin-top: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .crime-date::before {
+            content: '📅';
+        }
+
+        .photo-info {
+            font-size: 0.85rem;
+            color: #667eea;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 25px rgba(229, 62, 62, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .close-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(229, 62, 62, 0.4);
+        }
+
+        .no-records {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            margin: 60px 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .no-records h3 {
+            font-size: 1.8rem;
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .no-records p {
+            font-size: 1.1rem;
+            color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .crime-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-form input, .search-form select, .search-form button {
+                width: 100%;
+            }
+
+            .close-btn {
+                top: 10px;
+                right: 10px;
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .crime-card {
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        .crime-card:nth-child(1) { animation-delay: 0.05s; }
+        .crime-card:nth-child(2) { animation-delay: 0.1s; }
+        .crime-card:nth-child(3) { animation-delay: 0.15s; }
+        .crime-card:nth-child(4) { animation-delay: 0.2s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚔 Crime Records Management System</h1>
+            <p>View and Search Criminal Records</p>
+        </div>
+        
+        <div class="search-section">
+            <h3>Search Records</h3>
+            <form class="search-form" method="get" action="/crime-records">
+                <input type="text" name="search" th:value="${searchTerm}" placeholder="Enter search term..." />
+                <select name="searchType">
+                    <option value="id" th:selected="${searchType == 'id'}">Record ID</option>
+                    <option value="name" th:selected="${searchType == 'name'}">Criminal Name</option>
+                    <option value="city" th:selected="${searchType == 'city'}">City</option>
+                    <option value="crimetype" th:selected="${searchType == 'crimetype'}">Crime Type</option>
+                    <option value="details" th:selected="${searchType == 'details'}">Details</option>
+                </select>
+                <button type="submit">Search</button>
+                <a href="/crime-records" style="text-decoration: none;">
+                    <button type="button">Clear</button>
+                </a>
+            </form>
+        </div>
+        
+        <div class="stats">
+            <p><strong th:text="${totalRecords}">0</strong> records found 
+               <span th:if="${searchTerm}" th:text="'for: ' + ${searchTerm}"></span>
+               <span th:unless="${searchTerm}">(showing all records in FIFO order - latest first)</span>
+            </p>
+        </div>
+        
+        <div th:if="${crimes.empty}" class="no-records">
+            <h3>No crime records found</h3>
+            <p th:if="${searchTerm}">Try adjusting your search criteria.</p>
+            <p th:unless="${searchTerm}">No records have been added to the system yet.</p>
+        </div>
+        
+        <div class="crime-grid" th:if="${todayCrimes != null and !todayCrimes.empty}">
+            <div class="crime-card" style="grid-column: 1 / -1; background:#f0f8ff;">
+                <div class="crime-name">Today</div>
+            </div>
+            <div class="crime-card" th:each="crime : ${todayCrimes}">
+                <div class="crime-id" th:text="'ID: ' + ${crime.id}">ID: 123</div>
+                <div class="crime-name" th:text="${crime.name}">Criminal Name</div>
+                <div class="crime-details">
+                    <strong>City:</strong> <span th:text="${crime.city}">City</span>
+                </div>
+                <div class="crime-details">
+                    <strong>Details:</strong> <span th:text="${crime.details}">Crime details</span>
+                </div>
+                <div class="crime-type" th:text="${crime.crimeType}">Crime Type</div>
+                <div>
+                    <img th:if="${crime.photoPath != null and !#strings.isEmpty(crime.photoPath)}"
+                         th:src="@{'/photo/' + ${crime.id}}"
+                         class="crime-photo"
+                         alt="Criminal Photo"
+                         onerror="this.src='/defaultcriminal.jpg'"/>
+                    <img th:if="${crime.photoPath == null or #strings.isEmpty(crime.photoPath)}"
+                         src="/defaultcriminal.jpg"
+                         class="crime-photo"
+                         alt="Default Criminal Photo"/>
+                </div>
+                <div class="crime-date" th:text="'Added: ' + ${#temporals.format(crime.createdAt, 'dd/MM/yyyy HH:mm')}">Date</div>
+            </div>
+        </div>
+        
+        <div class="crime-grid" th:if="${yesterdayCrimes != null and !yesterdayCrimes.empty}">
+            <div class="crime-card" style="grid-column: 1 / -1; background:#fff7e6;">
+                <div class="crime-name">Yesterday</div>
+            </div>
+            <div class="crime-card" th:each="crime : ${yesterdayCrimes}">
+                <div class="crime-id" th:text="'ID: ' + ${crime.id}">ID: 123</div>
+                <div class="crime-name" th:text="${crime.name}">Criminal Name</div>
+                <div class="crime-details">
+                    <strong>City:</strong> <span th:text="${crime.city}">City</span>
+                </div>
+                <div class="crime-details">
+                    <strong>Details:</strong> <span th:text="${crime.details}">Crime details</span>
+                </div>
+                <div class="crime-type" th:text="${crime.crimeType}">Crime Type</div>
+                <div>
+                    <img th:if="${crime.photoPath != null and !#strings.isEmpty(crime.photoPath)}"
+                         th:src="@{'/photo/' + ${crime.id}}"
+                         class="crime-photo"
+                         alt="Criminal Photo"
+                         onerror="this.src='/defaultcriminal.jpg'"/>
+                    <img th:if="${crime.photoPath == null or #strings.isEmpty(crime.photoPath)}"
+                         src="/defaultcriminal.jpg"
+                         class="crime-photo"
+                         alt="Default Criminal Photo"/>
+                </div>
+                <div class="crime-date" th:text="'Added: ' + ${#temporals.format(crime.createdAt, 'dd/MM/yyyy HH:mm')}">Date</div>
+            </div>
+        </div>
+        
+        <div class="crime-grid" th:if="${earlierCrimes != null and !earlierCrimes.empty}">
+            <div class="crime-card" style="grid-column: 1 / -1; background:#f5f5f5;">
+                <div class="crime-name">Earlier</div>
+            </div>
+            <div class="crime-card" th:each="crime : ${earlierCrimes}">
+                <div class="crime-id" th:text="'ID: ' + ${crime.id}">ID: 123</div>
+                <div class="crime-name" th:text="${crime.name}">Criminal Name</div>
+                <div class="crime-details">
+                    <strong>City:</strong> <span th:text="${crime.city}">City</span>
+                </div>
+                <div class="crime-details">
+                    <strong>Details:</strong> <span th:text="${crime.details}">Crime details</span>
+                </div>
+                <div class="crime-type" th:text="${crime.crimeType}">Crime Type</div>
+                <div>
+                    <img th:if="${crime.photoPath != null and !#strings.isEmpty(crime.photoPath)}"
+                         th:src="@{'/photo/' + ${crime.id}}"
+                         class="crime-photo"
+                         alt="Criminal Photo"
+                         onerror="this.src='/defaultcriminal.jpg'"/>
+                    <img th:if="${crime.photoPath == null or #strings.isEmpty(crime.photoPath)}"
+                         src="/defaultcriminal.jpg"
+                         class="crime-photo"
+                         alt="Default Criminal Photo"/>
+                </div>
+                <div class="crime-date" th:text="'Added: ' + ${#temporals.format(crime.createdAt, 'dd/MM/yyyy HH:mm')}">Date</div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="close-btn" onclick="closeWindow()">Close & Return to Console</button>
+    
+    <!-- WebSocket dependencies -->
+    <script src="/webjars/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/2.3.4/stomp.min.js"></script>
+    
+    <script>
+        function closeWindow() {
+            if (confirm('Close this window and return to console?')) {
+                window.close();
+                setTimeout(function() {
+                    alert('Please close this browser tab manually to return to the console application.');
+                }, 100);
+            }
+        }
+        
+        function refreshData() {
+            console.log('Refreshing data...');
+            fetch(window.location.pathname + window.location.search)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, 'text/html');
+                    const currentContent = document.querySelector('.crime-grid');
+                    const newContent = newDoc.querySelector('.crime-grid');
+                    
+                    if (currentContent && newContent) {
+                        currentContent.innerHTML = newContent.innerHTML;
+                        console.log('Content updated');
+                        
+                        const statsElem = document.querySelector('.stats');
+                        const newStats = newDoc.querySelector('.stats');
+                        if (statsElem && newStats) {
+                            statsElem.innerHTML = newStats.innerHTML;
+                            console.log('Stats updated');
+                        }
+                        
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification('Crime Records Updated', {
+                                body: 'New crime records are available'
+                            });
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing data:', error);
+                });
+        }
+        
+        var reconnectAttempts = 0;
+        var maxReconnectAttempts = 5;
+        var reconnectDelay = 2000;
+        var stompClient = null;
+
+        function connectWebSocket() {
+            if (stompClient != null) {
+                try {
+                    stompClient.disconnect();
+                } catch (e) {
+                    console.log('Error disconnecting:', e);
+                }
+            }
+
+            console.log('Attempting to connect to WebSocket...');
+            var socket = new SockJS('/websocket-crime');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+            
+            stompClient.connect(
+                {},
+                function(frame) {
+                    console.log('Connected to WebSocket');
+                    reconnectAttempts = 0;
+                    reconnectDelay = 2000;
+                    
+                    stompClient.subscribe('/topic/crimes', function(message) {
+                        console.log('Received update notification:', message);
+                        try {
+                            const data = JSON.parse(message.body);
+                            console.log('Update received at:', new Date());
+                            console.log('Update details:', data);
+                            
+                            if (data.type === 'update' && data.action === 'refresh') {
+                                console.log('Refreshing data due to update notification');
+                                refreshData();
+                                
+                                if ('Notification' in window && Notification.permission === 'granted') {
+                                    new Notification('Crime Records Updated', {
+                                        body: 'New crime records are available',
+                                        icon: '/favico.ico'
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Error processing message:', e);
+                            refreshData();
+                        }
+                    });
+                },
+                function(error) {
+                    console.log('WebSocket connection error:', error);
+                    handleReconnect();
+                }
+            );
+
+            socket.onclose = function() {
+                console.log('WebSocket connection closed');
+                handleReconnect();
+            };
+
+            socket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                handleReconnect();
+            };
+            
+            return stompClient;
+        }
+
+        function handleReconnect() {
+            if (reconnectAttempts < maxReconnectAttempts) {
+                reconnectAttempts++;
+                console.log(`Reconnect attempt ${reconnectAttempts} of ${maxReconnectAttempts} in ${reconnectDelay}ms`);
+                setTimeout(connectWebSocket, reconnectDelay);
+                reconnectDelay *= 2;
+            } else {
+                console.log('Max reconnection attempts reached. Using fallback polling.');
+            }
+        }
+        
+        var stompClient = connectWebSocket();
+        var pollInterval = 5000;
+        const maxPollInterval = 30000;
+        var pollTimer = null;
+
+        function startPolling() {
+            if (!pollTimer) {
+                pollTimer = setInterval(function() {
+                    console.log('Polling for updates...');
+                    refreshData();
+                    
+                    if (pollInterval < maxPollInterval) {
+                        pollInterval = Math.min(pollInterval * 1.5, maxPollInterval);
+                    }
+                }, pollInterval);
+            }
+        }
+
+        function stopPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+
+        setInterval(function() {
+            if (!stompClient || !stompClient.connected) {
+                startPolling();
+            } else {
+                stopPolling();
+            }
+        }, 5000);
+
+        function subscribeToUpdates() {
+            if (stompClient && stompClient.connected) {
+                stompClient.subscribe('/topic/crimes', function(message) {
+                    console.log('Received update:', message);
+                    refreshData();
+                });
+            }
+        }
+
+        subscribeToUpdates();
+
+        setInterval(function() {
+            if (stompClient && stompClient.connected) {
+                pollInterval = 5000;
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
